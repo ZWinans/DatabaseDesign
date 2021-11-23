@@ -1,0 +1,97 @@
+// List all attributes of the employees from department 5
+1. 
+SELECT * 
+FROM mccann.employee 
+WHERE dno=5;
+
+// What are the SSNs of the employees working on proposal #10? Sort the result in descending order.
+2. 
+SELECT ESSN
+FROM mccann.Works_On
+WHERE PNO=10
+ORDER BY ESSN desc;
+
+// What is the Cartesian Product of the employees’ first names and the dependents’ names? List each pair
+of names only once in the result.
+3.
+SELECT DISTINCT fname,dependent_name 
+FROM mccann.employee, mccann.dependent;
+
+// At which locations is the research department located?
+4.
+SELECT dlocation
+FROM mccann.dept_locations
+WHERE dnumber=5;
+
+// What is the full name of the employee who has the largest salary?
+5.
+SELECT fname, minit, lname
+FROM mccann.employee
+WHERE salary = (
+		SELECT MAX(salary)
+		from mccann.employee
+		);
+
+// What are the names of the departments with employees who have a dependent named Alice?
+6.
+SELECT dname
+FROM mccann.department,mccann.employee,mccann.dependent
+WHERE mccann.employee.ssn=mccann.dependent.essn
+AND mccann.dependent.dependent_name='Alice'
+AND mccann.employee.dno=mccann.department.dnumber;
+
+// Retrieve the SSNs of the employees who work in department 5 or who directly supervise an employee in
+department 5.
+7.
+SELECT distinct ssn
+FROM mccann.employee
+WHERE mccann.employee.dno=5
+OR mccann.employee.ssn=mccann.department.mgrssn
+AND mccann.employee.dno=1;
+
+// What are the birthdates of the managers of the departments with projects from Stafford? (Note the
+wording change from Homework #2.)
+8. 
+SELECT distinct bdate
+FROM mccann.employee, mccann.department, mccann.project
+WHERE mccann.project.plocation='Stafford'
+AND mccann.project.dnum=mccann.department.dnumber
+AND mccann.department.mgrssn=mccann.employee.ssn;
+
+// For each employee, retrieve his/her full name and the full name of his/her immediate supervisor.
+9.
+SELECT distinct first.fname, first.minit, first.lname, second.fname, second.minit, second.lname
+FROM mccann.employee first, mccann.employee second
+WHERE first.superssn=second.ssn
+
+// What are the names of the male dependents who are dependents of a male employee?
+10.
+SELECT dependent_name
+FROM mccann.dependent, mccann.employee
+WHERE mccann.dependent.sex='M'
+AND mccann.dependent.essn=mccann.employee.ssn
+AND mccann.employee.sex='M';
+
+// What are the salaries of the employees from department 5 who are NOT working on ProductY?
+11. 
+(SELECT salary FROM mccann.employee WHERE dno = 5)
+MINUS
+(SELECT salary FROM mccann.employee, mccann.works_on, mccann.project
+WHERE ssn = essn AND pno = pnumber AND dno = 5 AND pname = 'ProductY');
+
+// For each project on which more than two employees work, retrieve the project number, project name,
+and the number of employees who work on that project.
+12.
+SELECT pnumber, pname, count(*)
+FROM mccann.project, mccann.works_on
+WHERE pnumber=pno
+GROUP BY pnumber, pname
+HAVING count(*) > 2;
+
+// What are the names of the departments which employ all genders? (In other words, the departments
+that have at least one woman and at least one man, which is the extent of the gender info available in
+this DB.)
+13.
+SELECT dname FROM mccann.department
+WHERE EXISTS (SELECT * FROM mccann.employee WHERE dno = dnumber AND sex = 'F')
+AND EXISTS (SELECT * FROM mccann.employee WHERE dno = dnumber AND sex = 'M');
